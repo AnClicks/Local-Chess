@@ -1,107 +1,118 @@
 
+const socket = io(); //this itself will run and automatically send request to the backend of the socket
 
-const socket = io();
-const chess = new Chess()
-const boardElement=document.querySelector(".chessboard");
+const chess = new Chess();
+const boardElement = document.querySelector(".chessboard");
+let draggedPiece = null;
+let sourceSquare = null;
+let playerRole = null;
 
-let draggedPiece= null;
-let sourceSquare=null;
-let playerRole=null;
-
-const renderBoard = ()=>{
+const renderBoard = () => {
     const board = chess.board();
     boardElement.innerHTML="";
-    // console.log(board)
-    board.forEach((row,rowindex)=>{
-        // console.log(row,rowindex)
-        row.forEach((square,squareindex)=>{
-           const squareElement= document.createElement("div");
-            squareElement.classList.add(
-                "square",
-                (rowindex + squareindex) % 2===0 ? "light":"dark"
-            );
-            squareElement.dataset.row = rowindex;
-            squareElement.dataset.col = squareindex;
-            if(square){
-                const pieceElement= document.createElement("div");
-                pieceElement.classList.add("piece",square.color === 'w' ? "white" : "black");
-                pieceElement.innerHTML=getPieceUnicode(square);
+    board.forEach((row, rowIndex) => {
+        row.forEach((square, squareIndex) => {
+            const squareElement = document.createElement("div");
+            squareElement.classList.add("square",(rowIndex + squareIndex) % 2 === 0 ? "light" : "dark" );  // for the squares in between
+
+            squareElement.dataset.row = rowIndex;
+            squareElement.dataset.col = squareIndex;
+
+            if(square){ //check for the sqaures on the edges of the start
+                const pieceElement = document.createElement("div");
+                pieceElement.classList.add("piece", square.color === "w" ? "white" : "black"); 
+
+                pieceElement.innerText =getPieceUnicode(square); // will get from unicode
                 pieceElement.draggable = playerRole === square.color;
-                pieceElement.addEventListener("dragstart",(e)=>{
+                
+                pieceElement.addEventListener("dragstart", (e) => {
                     if(pieceElement.draggable){
-                        draggedPiece=pieceElement;
-                        sourceSquare={row: rowindex,col:squareindex};
-                        // e.dataTransfer.setData{"text/plain",""};
-                        e.dataTransfer.setData("text/plain","");
+                        draggedPiece = pieceElement;
+                        sourceSquare = {row : rowIndex, col : squareIndex};
+                        e.dataTransfer.setData("text/plain", ""); //necessity
                     }
                 });
-                pieceElement.addEventListener("dragend",(e)=>{
-                    draggedPiece=null;
-                    sourceSquare=null;
+                pieceElement.addEventListener("dragend", (e) =>{
+                    draggedPiece = null;
+                    sourceSquare = null;
                 });
                 squareElement.appendChild(pieceElement);
+            }
 
-            };
-
-            squareElement.addEventListener("dragover",function(e){
-                e.preventDefault();
+            squareElement.addEventListener("dragover", function(e){
+                e.preventDefault(); 
             });
-            squareElement.addEventListener("drop",function(e){
+            squareElement.addEventListener("drop", function(e){
                 e.preventDefault();
                 if(draggedPiece){
-                    const targetSource = {
-                        row:parseInt(squareElement.dataset.row),
-                        col:parseInt(squareElement.dataset.col)
+                    const targetSquare = {
+                        row: parseInt(squareElement.dataset.row),
+                        col: parseInt(squareElement.dataset.col),
                     };
-                    handleMove(sourceSquare,targetSource)
+
+                    handleMove(sourceSquare, targetSquare);
                 }
             });
-            boardElement.appendChild(squareElement)
+            boardElement.appendChild(squareElement);
         });
     });
 
-   
-};
-
-const handleMove = (source,target)=>{
-    const move ={
-        form: `${String.fromCharCode(97+source.col)}${8-source.row}`,
-        to:`${String.fromCharCode(97+target.col)}${8-target.row}`,
-        promotion: 'q'
+    if(playerRole == 'b'){
+        boardElement.classList.add("flipped");
+    }else{
+        boardElement.classList.remove("flipped");
     }
-    socket.emit(move);
 };
 
-const getPieceUnicode =(piece)=>{
-    const unicodePieces={
-        p:"♟",
-        r:"♜",
-        n:"♞",
-        b:"♝",
-        q:"♛",
-        k:"♚",
-        P:"♟",
-        R:"♜",
-        N:"♞",
-        B:"♝",
-        Q:"♛",
-        K:"♚",
-    };
+const handleMove = (source, target) =>{
+    const move = {
+        from: `${String.fromCharCode(97 + source.col)}${8 - source.row}`,
+        to: `${String.fromCharCode(97 + target.col)}${8 - target.row}`,
+        promotion: "q"
+    }
+
+    socket.emit("move", move);
+};
+
+
+const getPieceUnicode = (piece) =>{
+    const unicodePieces = {
+        p: "♙",
+        r: "♖",
+        n: "♘",
+        b: "♗",
+        q: "♕",
+        k: "♔",
+        P: "♟",
+        R: "♜",
+        N: "♞",
+        B: "♝",
+        Q: "♛",
+        K: "♚",        
+    }   
     return unicodePieces[piece.type] || "";
 };
 
-socket.on("playerRole",function(role){
-    playerRole=role;
+
+
+socket.on("playerRole", function(role){
+    playerRole = role;
     renderBoard();
 })
-socket.on("spectatorRole",function(){
-    playerRole=null;
+
+socket.on("spectatorRole", function(){
+    playerRole = null;
     renderBoard();
 })
-socket.on("move",function(move){
+
+socket.on("boardState", function(fen){
+    chess.load(fen);
+    renderBoard();
+})
+
+socket.on("move", function(move){
     chess.move(move);
     renderBoard();
-});
-renderBoard()
+})
 
-
+renderBoard();
