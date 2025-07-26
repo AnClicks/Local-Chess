@@ -56,16 +56,11 @@ io.on("connection", function(uniquesocket){
             delete players.black;  
         }
 
-        //button logic
-        // if (Object.keys(players).length === 0) {
-        //     gameStarted = false;
-        // }
     });
 
 
     uniquesocket.on("move", (move) => {
         try{
-            // if (!gameStarted) return; // Ignore moves if the game hasn't started //button logic
             if(chess.turn() === "w" && uniquesocket.id !== players.white) return;
             if(chess.turn() === "b" && uniquesocket.id !== players.black) return;
 
@@ -86,13 +81,6 @@ io.on("connection", function(uniquesocket){
 
         }
     });
-
-    //message logic
-    // if (Object.keys(players).length === 2 && !gameStarted) {
-    //     gameStarted = true;
-    //     io.emit("gameStarted");
-    //     io.emit("boardState", chess.fen());
-    // }
 });
 
 server.listen(3000, function(){
