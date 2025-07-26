@@ -5,7 +5,7 @@ A lightweight **2-player local chess game** built with **HTML, CSS, JavaScript ,
 ![Chess Board Screenshot](/public/readme_assets/Screenshot%202025-07-26%20231130.png) 
 
 ## Demo
-[![Demo CountPages alpha](/public/readme_assets/ChessGame-MadewithClipchamp-ezgif.com-video-to-gif-converter.gif)]
+![Demo CountPages alpha](/public/readme_assets/ChessGame-MadewithClipchamp-ezgif.com-video-to-gif-converter.gif)
 ---
 
 ## 🕹 Features
@@ -38,8 +38,6 @@ cd Local-Chess
 Simply enter the command `npx nodemon` :
 
 ---
-```
-
 
 ## 🛠️ Built With
 
@@ -48,8 +46,6 @@ Simply enter the command `npx nodemon` :
 - JavaScript (Vanilla)
 - EJS
 - Socket.io
-
----
 
 ## 🤝 Contributing
 
